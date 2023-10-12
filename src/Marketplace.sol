@@ -6,6 +6,8 @@ import "openzeppelin/interfaces/IERC721.sol";
 // "solmate/tokens/ERC721/IERC721.sol";
 import {SignUtils} from "./libraries/SignUtils.sol";
 
+import "src/ERC20Mock.sol";
+
 contract Marketplace {
     struct Catalogue {
         address nftAddress;
@@ -65,12 +67,47 @@ contract Marketplace {
         newCatalogue.fractionCount = c.fractionCount;
         newCatalogue.fractionPrice = c.fractionPrice;
 
+        
+        // Mint the equivalent of the amount of the token in ERC20 tokens
+        FractionalNFT(Catalogue.nftAddress).mint(
+            address(this),
+            c.fractionPrice * c.fractionCount
+        );
+
         // Emit event
         emit CreatedCatalogue(catalogueId, newCatalogue);
         uint256 _catalogue = catalogueId;
         catalogueId++;
         return _catalogue;
     }
+
+    function buyFractionNFT(uint256 _catalogueId) public payable {
+        require(_catalogueId <= catalogueId, "Catalogue does not exist");
+        
+
+
+        // Update state
+        Catalogue.active = false;
+
+        
+
+        // Mint an ERC20 token to the user of the amount the NFT is for.
+        FractionalNFT(Catalogue.nftAddress).mint(msg.sender, msg.value);
+        // Burn the equivalent of the ERC20 token minted to the caller
+        FractionalNFT(Catalogue.nftAddress).burn(address(this), msg.value);
+
+        // ERC721(order.token).transferFrom(order.owner, msg.sender, order.tokenId);
+
+        // calculate 0.1% of the purchased amount
+        uint platformAmount = (Catalogue.fractionPrice * 1) / 1000;
+
+        // transfer eth
+        payable(Catalogue.owner).transfer(Catalogue.fractionPrice - platformAmount);
+
+        // transfer eth to platform
+        payable(owner).transfer(platformAmount);
+    }
+
 
     function executeCatalogue(uint256 _catalogueId) public payable {
         require(_catalogueId <= catalogueId, "Catalogue does not exist");
