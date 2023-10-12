@@ -113,7 +113,7 @@ contract Marketplace {
         emit ExecutedCatalogue(_catalogueId, newCatalogue);
     }
 
-    function transferMyFraction(uint256 _catalogueId, address _to) public {
+    function fractionTransfer(uint256 _catalogueId, address _to) public {
         Catalogue storage newCat = catalogues[_catalogueId];
         payable(_to).transfer(newCat.fractionPrice);
     }
