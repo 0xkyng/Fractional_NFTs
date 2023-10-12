@@ -100,13 +100,11 @@ contract Marketplace {
         // Burn the equivalent of the ERC20 token minted to the caller
         FractionalNFT(newCatalogue.fractionalNft).burn(address(this), msg.value);
 
-        // ERC721(order.token).transferFrom(order.owner, msg.sender, order.tokenId);
-
         // calculate 0.1% of the purchased amount
         uint platformAmount = (newCatalogue.fractionPrice * 1) / 1000;
 
         // transfer eth
-        payable(Catalogue.owner).transfer(newCatalogue.fractionPrice - platformAmount);
+        payable(owner).transfer(newCatalogue.fractionPrice - platformAmount);
 
         // transfer eth to platform
         payable(owner).transfer(platformAmount);
