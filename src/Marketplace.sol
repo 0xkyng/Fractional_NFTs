@@ -19,7 +19,7 @@ contract Marketplace {
         bool active;
         uint256 fractionCount;
         uint256 fractionPrice;
-        address fractionalNft;
+        address frn;
     }
 
     mapping(uint256 => Catalogue) public catalogues;
@@ -70,7 +70,7 @@ contract Marketplace {
 
         
         //Mint the equivalent of the amount of the token in ERC20 tokens
-        FractionalNFT(newCatalogue.fractionalNft).mint(
+        FractionalNFT(newCatalogue.frn).mint(
             address(this),
             c.fractionPrice * c.fractionCount
         );
@@ -96,9 +96,9 @@ contract Marketplace {
         newCatalogue.active = false;
 
         // Mint an ERC20 token to the user of the amount the NFT is for.
-        FractionalNFT(newCatalogue.fractionalNft).mint(msg.sender, msg.value);
+        FractionalNFT(newCatalogue.frn).mint(msg.sender, msg.value);
         // Burn the equivalent of the ERC20 token minted to the caller
-        FractionalNFT(newCatalogue.fractionalNft).burn(address(this), msg.value);
+        FractionalNFT(newCatalogue.frn).burn(address(this), msg.value);
 
         // calculate 0.1% of the purchased amount
         uint platformAmount = (newCatalogue.fractionPrice * 1) / 1000;
