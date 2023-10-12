@@ -6,7 +6,7 @@ import "openzeppelin/interfaces/IERC721.sol";
 // "solmate/tokens/ERC721/IERC721.sol";
 import {SignUtils} from "./libraries/SignUtils.sol";
 
-import "src/ERC20Mock.sol";
+import {FractionalNFT} from "src/ERC20Mock.sol";
 
 contract Marketplace {
     struct Catalogue {
@@ -83,7 +83,7 @@ contract Marketplace {
 
     function buyFractionNFT(uint256 _catalogueId) public payable {
         require(_catalogueId <= catalogueId, "Catalogue does not exist");
-        
+
 
 
         // Update state
