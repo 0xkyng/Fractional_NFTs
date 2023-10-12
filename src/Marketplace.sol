@@ -19,6 +19,7 @@ contract Marketplace {
         bool active;
         uint256 fractionCount;
         uint256 fractionPrice;
+        address fractionalNft;
     }
 
     mapping(uint256 => Catalogue) public catalogues;
@@ -68,44 +69,17 @@ contract Marketplace {
         newCatalogue.fractionPrice = c.fractionPrice;
 
         
-        // Mint the equivalent of the amount of the token in ERC20 tokens
-        FractionalNFT(Catalogue.nftAddress).mint(
+        //Mint the equivalent of the amount of the token in ERC20 tokens
+        FractionalNFT(newCatalogue.fractionalNft).mint(
             address(this),
             c.fractionPrice * c.fractionCount
         );
-
+        
         // Emit event
         emit CreatedCatalogue(catalogueId, newCatalogue);
         uint256 _catalogue = catalogueId;
         catalogueId++;
         return _catalogue;
-    }
-
-    function buyFractionNFT(uint256 _catalogueId) public payable {
-        require(_catalogueId <= catalogueId, "Catalogue does not exist");
-
-
-
-        // Update state
-        Catalogue.active = false;
-
-        
-
-        // Mint an ERC20 token to the user of the amount the NFT is for.
-        FractionalNFT(Catalogue.nftAddress).mint(msg.sender, msg.value);
-        // Burn the equivalent of the ERC20 token minted to the caller
-        FractionalNFT(Catalogue.nftAddress).burn(address(this), msg.value);
-
-        // ERC721(order.token).transferFrom(order.owner, msg.sender, order.tokenId);
-
-        // calculate 0.1% of the purchased amount
-        uint platformAmount = (Catalogue.fractionPrice * 1) / 1000;
-
-        // transfer eth
-        payable(Catalogue.owner).transfer(Catalogue.fractionPrice - platformAmount);
-
-        // transfer eth to platform
-        payable(owner).transfer(platformAmount);
     }
 
 
@@ -121,18 +95,29 @@ contract Marketplace {
         // Update state
         newCatalogue.active = false;
 
-        // transfer
-        ERC721(newCatalogue.nftAddress).transferFrom(
-            newCatalogue.creator,
-            msg.sender,
-            newCatalogue.tokenId
-        );
+        // Mint an ERC20 token to the user of the amount the NFT is for.
+        FractionalNFT(newCatalogue.fractionalNft).mint(msg.sender, msg.value);
+        // Burn the equivalent of the ERC20 token minted to the caller
+        FractionalNFT(newCatalogue.fractionalNft).burn(address(this), msg.value);
+
+        // ERC721(order.token).transferFrom(order.owner, msg.sender, order.tokenId);
+
+        // calculate 0.1% of the purchased amount
+        uint platformAmount = (newCatalogue.fractionPrice * 1) / 1000;
 
         // transfer eth
-        payable(newCatalogue.creator).transfer(newCatalogue.price);
+        payable(Catalogue.owner).transfer(newCatalogue.fractionPrice - platformAmount);
+
+        // transfer eth to platform
+        payable(owner).transfer(platformAmount);
 
         // Update storage
         emit ExecutedCatalogue(_catalogueId, newCatalogue);
+    }
+
+    function transferMyFraction(uint256 _catalogueId, address _to) public {
+        Catalogue storage newCat = catalogues[_catalogueId];
+        payable(_to).transfer(newCat.fractionPrice);
     }
 
     function editCatalogue(
